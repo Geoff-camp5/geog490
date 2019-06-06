@@ -328,76 +328,159 @@ kbd {
 
 <body>
 
-<p><img src="BasicSoil.png" alt=""></p>
+<div><pre><code class="language-none">library(sf) 
+library(ncdf4)
+library(raster)
+library(rasterVis)
+library(RColorBrewer)
+library(ncdf.tools)
+library(ggplot2)
+library(ggthemes)
+library(zoo)
 
-<div><pre><code class="language-none"> 3 variables (excluding dimension variables):
-    double climatology_bounds[nbnds,time]   
-        long_name: Climate Time Boundaries
-        units: days since 1948-1-1 0:0:0
-    float soilw[lon,lat,time]   
-        long_name: Model-Calculated Long Term Monthly Mean Soil Moisture
-        missing_value: -9.96920996838687e+36
-        units: mm
-        dataset: CPC Monthly Soil Moisture
-        var_desc: Soil Moisture
-        level_desc: Surface
-        statistic: Long Term Mean
-        parent_stat: Other
-        standard_name: lwe_thickness_of_soil_moisture_content
-        cell_methods: time: mean (monthly from values)
-        scale_factor: 1
-        add_offset: 0
-        valid_range: 0
-         valid_range: 1000
-        actual_range: 1.86264514923096e-06
-         actual_range: 743.505004882812
-    float valid_yr_count[lon,lat,time]   
-        long_name: count of non-missing values used in mean
-        missing_value: 32767
-        add_offset: 0
-        scale_factor: 1
+shp_path &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
+shp_name &lt;- &quot;ne_110m_admin_0_countries.shp&quot;
+shp_file &lt;- paste(shp_path, shp_name, sep=&quot;&quot;)
 
- 4 dimensions:
-    lon  Size:720
-        long_name: Longitude
-        units: degrees_east
-        actual_range: 0.25
-         actual_range: 359.75
-        standard_name: longitude
-        axis: X
-        coordinate_defines: point
-    lat  Size:360
-        long_name: Latitude
-        units: degrees_north
-        actual_range: 89.75
-         actual_range: -89.75
-        standard_name: latitude
-        axis: Y
-        coordinate_defines: point
-    time  Size:12
-        long_name: Time
-        delta_t: 0000-01-00 00:00:00
-        avg_period: 0000-01-00 00:00:00
-        standard_name: time
-        axis: T
-        coordinate_defines: start
-        prev_avg_period: 0000-00-01 00:00:00
-        climatology: climatology_bounds
-        climo_period: 1981/01/01 - 2010/12/31
-        interpreted_actual_range: 0001/01/01 00:00:00 - 0001/12/01 00:00:00
-        units: days since 1800-01-01 00:00:0.0
-        actual_range: -657073
-         actual_range: -656739
-    nbnds  Size:2
+ncpath &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
+ncname &lt;- &quot;soilw.mon.ltm.v2.nc&quot;  
+ncfname &lt;- paste(ncpath, ncname, sep=&quot;&quot;)
+soil &lt;- raster(ncfname, varname=&quot;soilw&quot;)
 
-7 global attributes:
-    Conventions: CF-1.0
-    history: Created 2011/08/31 by doMonthLTM
-    title: CPC Soil Moisture
-    institution: NOAA/ESRL PSD
-    not_missing_threshold_percent: minimum 3% values input to have non-missing output value
-    dataset_title: CPC Soil Moisture
-    References: https://www.esrl.noaa.gov/psd/data/gridded/data.cpcsoil.html</code></pre></div>
+
+mapTheme &lt;- rasterTheme(region=brewer.pal(8,&quot;Reds&quot;))
+levelplot(soil, margin=T, par.settings=mapTheme)</code></pre></div>
+
+<p><img src="Basic.png" alt=""></p>
+
+<p>ncpath &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
+    ncname &lt;- &quot;soilw.mon.ltm.v2.nc&quot;<br>
+    ncfname &lt;- paste(ncpath, ncname, sep=&quot;&quot;)
+    dname &lt;- &quot;soilw&quot;</p>
+
+<div><pre><code class="language-none">monthly &lt;- stack(ncfname)
+names(monthly) &lt;- c(&quot;Dec&quot;,&quot;Jan&quot;,&quot;Feb&quot;,&quot;Mar&quot;,&quot;Apr&quot;,&quot;May&quot;,&quot;Jun&quot;,&quot;Jul&quot;,&quot;Aug&quot;,&quot;Sep&quot;,&quot;Oct&quot;,&quot;Nov&quot;)
+
+pngfile &lt;- &quot;months.png&quot;
+png(pngfile, width=729, height=729)
+levelplot(monthly , cuts=11, pretty=T, 
+                col.regions=(rev(brewer.pal(10,&quot;RdBu&quot;))))</code></pre></div>
+
+<p><img src="months.png" alt=""></p>
+
+<div><pre><code class="language-none">ncpath &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
+ncname &lt;- &quot;soilw.mon.ltm.v2.nc&quot;   
+ncfname &lt;- paste(ncpath, ncname, sep=&quot;&quot;)
+dname_mon &lt;- &quot;soilw&quot;
+
+ncin &lt;- nc_open(ncfname)
+print(ncin)
+
+lon &lt;- ncvar_get(ncin,&quot;lon&quot;)
+nlon &lt;- dim(lon)
+head(lon)
+
+lat &lt;- ncvar_get(ncin,&quot;lat&quot;)
+nlat &lt;- dim(lat)
+head(lat)
+
+time &lt;- ncvar_get(ncin,&quot;time&quot;)
+tunits &lt;- ncatt_get(ncin,&quot;time&quot;,&quot;units&quot;)
+nt &lt;- dim(time)
+print (c(nlon, nlat, nt))
+
+tustr &lt;- strsplit(tunits$value, &quot; &quot;)
+ptime &lt;- convertDateNcdf2R(time, unlist(tustr)[1], 
+                       origin = as.POSIXct(unlist(tustr)[3],                                                tz = &quot;UTC&quot;), time.format = &quot;%Y-%m-%d&quot;)
+head(time); tail(time)
+
+head(ptime); tail(ptime)
+
+SST_mon &lt;- ncvar_get(ncin,dname_mon)
+dlname_mon &lt;- ncatt_get(ncin,dname_mon,&quot;long_name&quot;)
+dunits_mon &lt;- ncatt_get(ncin,dname_mon,&quot;units&quot;)
+fillvalue_mon &lt;- ncatt_get(ncin,dname_mon,&quot;_FillValue&quot;)
+dim(SST_mon)
+
+nc_close(ncin)
+
+temp_lat &lt;- rep(NA, nlat)
+temp_lat[1:nlat] &lt;- lat[nlat:1]
+temp_lat
+
+lat &lt;- temp_lat
+
+temp_array &lt;- array(NA, dim = c(nlon, nlat, nt))
+temp_array[1:nlon, 1:nlat, 1:nt] &lt;-  SST_mon[1:nlon, nlat:1, 1:nt] 
+SST_mon &lt;- temp_array
+
+temp_lon &lt;- rep(NA, nlon)
+temp_lon[1:(nlon/2)] &lt;-  lon[((nlon/2)+1):nlon] - 360.0
+temp_lon[((nlon/2)+1):nlon] &lt;-  lon[1:(nlon/2)]
+temp_lon
+lon &lt;- temp_lon
+
+temp_array &lt;- array(NA, dim = c(nlon, nlat, nt))
+temp_array[1:(nlon/2), 1:nlat, 1:nt] &lt;-  SST_mon[((nlon/2)+1):nlon, nlat:1, 1:nt] 
+temp_array[((nlon/2)+1):nlon, 1:nlat, 1:nt] &lt;-  SST_mon[1:(nlon/2), nlat:1, 1:nt]
+SST_mon &lt;- temp_array
+
+n &lt;- 2
+grid &lt;- expand.grid(lon=lon, lat=lat)
+levelplot(SST_mon[,, n] ~ lon * lat, data=grid, cuts=11, pretty=T, 
+             col.regions=(rev(brewer.pal(10,&quot;RdBu&quot;))))</code></pre></div>
+
+<p><img src="Hollzernew.png" alt=""></p>
+
+<div><pre><code class="language-none">SST_mon &lt;- SST_mon[,, 1:(nt-3)]
+dim(SST_mon)
+
+time &lt;- time[1:(nt-3)]
+ptime &lt;- ptime[1:(nt-3)]
+head(ptime); tail(ptime)
+
+nt &lt;- nt - 3
+
+SST_path &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
+SST_ltm_name &lt;- &quot;soilw.mon.ltm.v2.nc&quot;
+SST_ltm_file &lt;- paste(SST_path, SST_ltm_name, sep=&quot;&quot;)
+dname_ltm &lt;- &quot;soilw&quot;
+
+ncin &lt;- nc_open(SST_ltm_file)
+
+time &lt;- ncvar_get(ncin,&quot;time&quot;)
+tunits &lt;- ncatt_get(ncin,&quot;time&quot;,&quot;units&quot;)
+nm &lt;- dim(time)
+nm; tunits
+
+SST_ltm &lt;- ncvar_get(ncin,dname_ltm)
+dlname_ltm &lt;- ncatt_get(ncin,dname_ltm,&quot;long_name&quot;)
+dunits_ltm &lt;- ncatt_get(ncin,dname_ltm,&quot;units&quot;)
+fillvalue_ltm &lt;- ncatt_get(ncin,dname_ltm,&quot;_FillValue&quot;)
+dim(SST_ltm)
+nc_close(ncin)
+
+temp_array &lt;- array(NA, dim = c(nlon, nlat, nm))
+temp_array[1:nlon, 1:nlat, 1:nm] &lt;-  SST_ltm[1:nlon, nlat:1, 1:nm] 
+SST_ltm &lt;- temp_array
+
+temp_lon &lt;- rep(NA, nlon)
+temp_lon[1:(nlon/2)] &lt;-  lon[((nlon/2)+1):nlon] - 360.0
+temp_lon[((nlon/2)+1):nlon] &lt;-  lon[1:(nlon/2)]
+temp_lon
+lon &lt;- temp_lon
+
+temp_array &lt;- array(NA, dim = c(nlon, nlat, nt))
+temp_array[1:(nlon/2), 1:nlat, 1:nt] &lt;-  SST_ltm[((nlon/2)+1):nlon, nlat:1, 1:nt]
+temp_array[((nlon/2)+1):nlon, 1:nlat, 1:nt] &lt;-  SST_ltm[1:(nlon/2), nlat:1, 1:nt]
+SST_ltm &lt;- temp_array
+
+n &lt;- 8
+grid &lt;- expand.grid(lon=lon, lat=lat)
+levelplot(SST_ltm[,, n] ~ lon * lat, data=grid, cuts=11, pretty=T, 
+             col.regions=(rev(brewer.pal(10,&quot;RdBu&quot;))))  </code></pre></div>
+
+<p><img src="Hollzer1new.png" alt=""></p>
 
 
 
