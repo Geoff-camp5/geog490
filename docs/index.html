@@ -5,7 +5,7 @@
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>index</title>
+<title>Final Project</title>
 
 
 <style type="text/css">
@@ -328,6 +328,28 @@ kbd {
 
 <body>
 
+<h2 id="toc_0">Soil Moister - Final Project</h2>
+
+<p>Geoffrey Campbell<br>
+GEOG 490<br>
+Patrick Bartlein<br>
+6/13/2019  </p>
+
+<p>The data contains information about global soil moisture from 1948/01 to 2019/05<br>
+The Data comes from the ESRL website.  <a href="https://www.esrl.noaa.gov/psd/data/gridded/data.cpcsoil.html">Link to data</a></p>
+
+<ol>
+<li>This project aims to... 
+
+<ol>
+<li>Map the global soil moisture around the world.</li>
+<li>Show any changes of global soil moisture over the past 72 years.</li>
+<li>Display the monthly variations of global soil moisture.</li>
+</ol></li>
+</ol>
+
+<h3 id="toc_1">Load the required packages</h3>
+
 <div><pre><code class="language-none">library(sf) 
 library(ncdf4)
 library(raster)
@@ -336,44 +358,22 @@ library(RColorBrewer)
 library(ncdf.tools)
 library(ggplot2)
 library(ggthemes)
-library(zoo)
+library(zoo)  </code></pre></div>
 
-shp_path &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
+<h3 id="toc_2">Load the netCDF data</h3>
+
+<div><pre><code class="language-none">shp_path &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
 shp_name &lt;- &quot;ne_110m_admin_0_countries.shp&quot;
 shp_file &lt;- paste(shp_path, shp_name, sep=&quot;&quot;)
 
 ncpath &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
 ncname &lt;- &quot;soilw.mon.ltm.v2.nc&quot;  
 ncfname &lt;- paste(ncpath, ncname, sep=&quot;&quot;)
-soil &lt;- raster(ncfname, varname=&quot;soilw&quot;)
+soil &lt;- raster(ncfname, varname=&quot;soilw&quot;)</code></pre></div>
 
+<h3 id="toc_3">This code creates a soil moisture map of the world.</h3>
 
-mapTheme &lt;- rasterTheme(region=brewer.pal(8,&quot;Reds&quot;))
-levelplot(soil, margin=T, par.settings=mapTheme)</code></pre></div>
-
-<p><img src="Basic.png" alt=""></p>
-
-<p>ncpath &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
-    ncname &lt;- &quot;soilw.mon.ltm.v2.nc&quot;<br>
-    ncfname &lt;- paste(ncpath, ncname, sep=&quot;&quot;)
-    dname &lt;- &quot;soilw&quot;</p>
-
-<div><pre><code class="language-none">monthly &lt;- stack(ncfname)
-names(monthly) &lt;- c(&quot;Dec&quot;,&quot;Jan&quot;,&quot;Feb&quot;,&quot;Mar&quot;,&quot;Apr&quot;,&quot;May&quot;,&quot;Jun&quot;,&quot;Jul&quot;,&quot;Aug&quot;,&quot;Sep&quot;,&quot;Oct&quot;,&quot;Nov&quot;)
-
-pngfile &lt;- &quot;months.png&quot;
-png(pngfile, width=729, height=729)
-levelplot(monthly , cuts=11, pretty=T, 
-                col.regions=(rev(brewer.pal(10,&quot;RdBu&quot;))))</code></pre></div>
-
-<p><img src="months.png" alt=""></p>
-
-<div><pre><code class="language-none">ncpath &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
-ncname &lt;- &quot;soilw.mon.ltm.v2.nc&quot;   
-ncfname &lt;- paste(ncpath, ncname, sep=&quot;&quot;)
-dname_mon &lt;- &quot;soilw&quot;
-
-ncin &lt;- nc_open(ncfname)
+<div><pre><code class="language-none">ncin &lt;- nc_open(ncfname)
 print(ncin)
 
 lon &lt;- ncvar_get(ncin,&quot;lon&quot;)
@@ -391,16 +391,16 @@ print (c(nlon, nlat, nt))
 
 tustr &lt;- strsplit(tunits$value, &quot; &quot;)
 ptime &lt;- convertDateNcdf2R(time, unlist(tustr)[1], 
-                       origin = as.POSIXct(unlist(tustr)[3],                                                tz = &quot;UTC&quot;), time.format = &quot;%Y-%m-%d&quot;)
+                       origin = as.POSIXct(unlist(tustr)[3],                                                    tz = &quot;UTC&quot;), time.format = &quot;%Y-%m-%d&quot;)
 head(time); tail(time)
 
 head(ptime); tail(ptime)
 
-SST_mon &lt;- ncvar_get(ncin,dname_mon)
+soil_mon &lt;- ncvar_get(ncin,dname_mon)
 dlname_mon &lt;- ncatt_get(ncin,dname_mon,&quot;long_name&quot;)
 dunits_mon &lt;- ncatt_get(ncin,dname_mon,&quot;units&quot;)
 fillvalue_mon &lt;- ncatt_get(ncin,dname_mon,&quot;_FillValue&quot;)
-dim(SST_mon)
+dim(soil_mon)
 
 nc_close(ncin)
 
@@ -411,8 +411,8 @@ temp_lat
 lat &lt;- temp_lat
 
 temp_array &lt;- array(NA, dim = c(nlon, nlat, nt))
-temp_array[1:nlon, 1:nlat, 1:nt] &lt;-  SST_mon[1:nlon, nlat:1, 1:nt] 
-SST_mon &lt;- temp_array
+temp_array[1:nlon, 1:nlat, 1:nt] &lt;-  soil_mon[1:nlon, nlat:1, 1:nt] 
+soil_mon &lt;- temp_array
 
 temp_lon &lt;- rep(NA, nlon)
 temp_lon[1:(nlon/2)] &lt;-  lon[((nlon/2)+1):nlon] - 360.0
@@ -421,66 +421,79 @@ temp_lon
 lon &lt;- temp_lon
 
 temp_array &lt;- array(NA, dim = c(nlon, nlat, nt))
-temp_array[1:(nlon/2), 1:nlat, 1:nt] &lt;-  SST_mon[((nlon/2)+1):nlon, nlat:1, 1:nt] 
-temp_array[((nlon/2)+1):nlon, 1:nlat, 1:nt] &lt;-  SST_mon[1:(nlon/2), nlat:1, 1:nt]
-SST_mon &lt;- temp_array
+temp_array[1:(nlon/2), 1:nlat, 1:nt] &lt;-  soil_mon[((nlon/2)+1):nlon,    nlat:1, 1:nt] 
+temp_array[((nlon/2)+1):nlon, 1:nlat, 1:nt] &lt;-  soil_mon[1:(nlon/2), nlat:1, 1:nt]
+soil_mon &lt;- temp_array
 
 n &lt;- 2
 grid &lt;- expand.grid(lon=lon, lat=lat)
-levelplot(SST_mon[,, n] ~ lon * lat, data=grid, cuts=11, pretty=T, 
-             col.regions=(rev(brewer.pal(10,&quot;RdBu&quot;))))</code></pre></div>
+levelplot(soil_mon[,, n] ~ lon * lat, data=grid, cuts=11, pretty=T, 
+      col.regions=(rev(brewer.pal(10,&quot;Reds&quot;))))</code></pre></div>
 
-<p><img src="Hollzernew.png" alt=""></p>
+<h3 id="toc_4">Result</h3>
 
-<div><pre><code class="language-none">SST_mon &lt;- SST_mon[,, 1:(nt-3)]
-dim(SST_mon)
+<h3 id="toc_5">1981 Janurary (Red to White: Low Moisture to High Moisture)</h3>
 
-time &lt;- time[1:(nt-3)]
-ptime &lt;- ptime[1:(nt-3)]
-head(ptime); tail(ptime)
+<p><img src="Soilmoisture.png" alt=""></p>
 
-nt &lt;- nt - 3
+<h3 id="toc_6">When looking at this map. Soil moisture values seems to be high when it&#39;s in an area where it does not lack precipitation values such as the Amazon and East Asia and low when it&#39;s in an area with low precipitation values such as the Arctic and Persian Gulf.</h3>
 
-SST_path &lt;- &quot;C:/Users/Geoffrey/Documents/Rdata/&quot;
-SST_ltm_name &lt;- &quot;soilw.mon.ltm.v2.nc&quot;
-SST_ltm_file &lt;- paste(SST_path, SST_ltm_name, sep=&quot;&quot;)
-dname_ltm &lt;- &quot;soilw&quot;
+<h3 id="toc_7">This is the code to produce a plot that shows the monthly soil variations</h3>
 
-ncin &lt;- nc_open(SST_ltm_file)
+<div><pre><code class="language-none">monthly &lt;- stack(ncfname)
+names(monthly) &lt;- c(&quot;Dec&quot;,&quot;Jan&quot;,&quot;Feb&quot;,&quot;Mar&quot;,&quot;Apr&quot;,&quot;May&quot;,&quot;Jun&quot;,&quot;Jul&quot;,&quot;Aug&quot;,&quot;Sep&quot;,&quot;Oct&quot;,&quot;Nov&quot;)
+
+pngfile &lt;- &quot;months.png&quot;
+png(pngfile, width=729, height=729)
+levelplot(monthly , cuts=11, pretty=T, 
+            col.regions=(rev(brewer.pal(10,&quot;RdBu&quot;))))</code></pre></div>
+
+<h3 id="toc_8">Result</h3>
+
+<h3 id="toc_9">1981 Janurary (Blue to Red: Low Moisture to High Moisture)</h3>
+
+<p><img src="months.png" alt=""></p>
+
+<h3 id="toc_10">Upon closer inspection.  We can see multiple regions soil moisture rates have a noticeable change throughout the year such as Northern Europe, India, Sub-Saharan Africa, and South America. Regions that don&#39;t have any noticeable changes can also be seen on the map such as the Urals, Persian Gulf, and Australia. This can be partly explained by the regions varied precipitation rates. Regions that don&#39;t have low precipitation rates and have a wet and dry season can be seen on the map. While regions that have very low or no precipitation rates can be seen maintain a single color monthly.</h3>
+
+<h3 id="toc_11">This is the code that compares Janurary 1948 to Janurary 2019</h3>
+
+<div><pre><code class="language-none">ncin &lt;- nc_open(ncfname)
+lon &lt;- ncvar_get(ncin,&quot;lon&quot;)
+nlon &lt;- dim(lon)
+lat &lt;- ncvar_get(ncin,&quot;lat&quot;)
+nlat &lt;- dim(lat)
 
 time &lt;- ncvar_get(ncin,&quot;time&quot;)
 tunits &lt;- ncatt_get(ncin,&quot;time&quot;,&quot;units&quot;)
-nm &lt;- dim(time)
-nm; tunits
+nt &lt;- dim(time)
 
-SST_ltm &lt;- ncvar_get(ncin,dname_ltm)
-dlname_ltm &lt;- ncatt_get(ncin,dname_ltm,&quot;long_name&quot;)
-dunits_ltm &lt;- ncatt_get(ncin,dname_ltm,&quot;units&quot;)
-fillvalue_ltm &lt;- ncatt_get(ncin,dname_ltm,&quot;_FillValue&quot;)
-dim(SST_ltm)
-nc_close(ncin)
+soil_array &lt;- ncvar_get(ncin,dname)
+dlname &lt;- ncatt_get(ncin,dname,&quot;long_name&quot;)
+dunits &lt;- ncatt_get(ncin,dname,&quot;units&quot;)
+fillvalue &lt;- ncatt_get(ncin,dname,&quot;_FillValue&quot;)
 
-temp_array &lt;- array(NA, dim = c(nlon, nlat, nm))
-temp_array[1:nlon, 1:nlat, 1:nm] &lt;-  SST_ltm[1:nlon, nlat:1, 1:nm] 
-SST_ltm &lt;- temp_array
+m &lt;- 1
+soil_slice &lt;- soil_array[,,m]
 
-temp_lon &lt;- rep(NA, nlon)
-temp_lon[1:(nlon/2)] &lt;-  lon[((nlon/2)+1):nlon] - 360.0
-temp_lon[((nlon/2)+1):nlon] &lt;-  lon[1:(nlon/2)]
-temp_lon
-lon &lt;- temp_lon
+image(soil_slice, col=rev(brewer.pal(10,&quot;RdBu&quot;)))
 
-temp_array &lt;- array(NA, dim = c(nlon, nlat, nt))
-temp_array[1:(nlon/2), 1:nlat, 1:nt] &lt;-  SST_ltm[((nlon/2)+1):nlon, nlat:1, 1:nt]
-temp_array[((nlon/2)+1):nlon, 1:nlat, 1:nt] &lt;-  SST_ltm[1:(nlon/2), nlat:1, 1:nt]
-SST_ltm &lt;- temp_array
+m &lt;- 852
+soil_slice &lt;- soil_array[,,m]
 
-n &lt;- 8
-grid &lt;- expand.grid(lon=lon, lat=lat)
-levelplot(SST_ltm[,, n] ~ lon * lat, data=grid, cuts=11, pretty=T, 
-             col.regions=(rev(brewer.pal(10,&quot;RdBu&quot;))))  </code></pre></div>
+image(soil_slice, col=rev(brewer.pal(10,&quot;RdBu&quot;)))</code></pre></div>
 
-<p><img src="Hollzer1new.png" alt=""></p>
+<h3 id="toc_12">Result</h3>
+
+<h3 id="toc_13">1948 Janurary (Blue to Red: Low Moisture to High Moisture)</h3>
+
+<p><img src="1948Jan.jpeg" alt=""></p>
+
+<h3 id="toc_14">2019 Janurary (Blue to Red: Low Moisture to High Moisture)</h3>
+
+<p><img src="2019Jan.jpeg" alt=""></p>
+
+<h3 id="toc_15">After the 72 year difference, several things can be noticed that can be attributed to phenomenons today. The soil moisture in the Amazon Rain Forest and Sub Saharan Africa has significantly grown weaker over the past 72 years. This can be possibly attribted to anthropogenic actitivities such as urbanization and logging leaving less capicity for soil moisture. In contrast, an increase in soil moisture can be seen in the North East of the United States. This can be possibly explained by the reforestation trend that has been occuring over the past 100 years in that region when agriculture was replaced by urbanization leaving areas to be naturally reforested.</h3>
 
 
 
